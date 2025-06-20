@@ -11,16 +11,17 @@ st.title("📊 Marketing Test Dashboard")
 st.write("Explore and visualize your enriched marketing test examples.")
 
 # ---------------------------
-# 1️⃣ Filter (buttons with styling)
+# 1️⃣ Filter (buttons, same size)
 # ---------------------------
 st.subheader("🔎 **Filter by Test Type:**")
 
 test_types = df['Test Type'].unique()
-# Initialize session state to keep selected test types
+
+# Initialize session state for filter
 if 'selected_types' not in st.session_state:
     st.session_state.selected_types = list(test_types)
 
-# Button container
+# Filter buttons
 filter_cols = st.columns(len(test_types))
 
 for i, test_type in enumerate(test_types):
@@ -31,13 +32,13 @@ for i, test_type in enumerate(test_types):
         if filter_cols[i].button(f"{test_type}", key=f"{test_type}_off"):
             st.session_state.selected_types.append(test_type)
 
-# If nothing is selected, default back to all
+# Default to all if none selected
 if not st.session_state.selected_types:
     filtered_df = df.copy()
 else:
     filtered_df = df[df['Test Type'].isin(st.session_state.selected_types)]
 
-# Custom CSS for button styling
+# ✅ Custom CSS: same size buttons + style
 st.markdown("""
     <style>
     div[data-testid="column"] > div > button {
@@ -45,7 +46,13 @@ st.markdown("""
         color: white;
         border: none;
         border-radius: 4px;
-        padding: 0.5em 1em;
+        padding: 0.8em 1em;
+        width: 200px;               /* Fixed width */
+        height: 60px;               /* Fixed height */
+        white-space: normal;        /* Allow wrap */
+        word-break: break-word;     /* Wrap long words */
+        text-align: center;         /* Center text */
+        font-size: 16px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -98,7 +105,7 @@ if not filtered_df.empty:
     col1, col2 = st.columns(2)
 
     with col1:
-        # New ROI vs Spend Bubble chart
+        # ROI vs Spend Bubble Chart
         fig_roi_spend = px.scatter(
             filtered_df,
             x="Cost ($)",
@@ -123,9 +130,9 @@ if not filtered_df.empty:
         st.plotly_chart(fig_ctr, use_container_width=True)
 
 # ---------------------------
-# 5️⃣ List of Tests (moved to bottom)
+# 5️⃣ List of Tests (bottom)
 # ---------------------------
 st.subheader(f"🗂️ Showing {len(filtered_df)} Test(s)")
 st.dataframe(filtered_df)
 
-st.success("✅ Dashboard updated with new filter style, chart, and layout!")
+st.success("✅ Dashboard fully updated: filter buttons same size, charts reordered, and new bubble chart in place!")
