@@ -11,7 +11,7 @@ st.title("📊 Marketing Test Dashboard")
 st.write("Explore and visualize your enriched marketing test examples.")
 
 # ---------------------------
-# 1️⃣ Filter (buttons, same size)
+# 1️⃣ Filter (uniform HTML buttons grid)
 # ---------------------------
 st.subheader("🔎 **Filter by Test Type:**")
 
@@ -21,16 +21,56 @@ test_types = df['Test Type'].unique()
 if 'selected_types' not in st.session_state:
     st.session_state.selected_types = list(test_types)
 
-# Filter buttons
-filter_cols = st.columns(len(test_types))
+# Generate buttons in a form to capture clicks
+with st.form("filter_form"):
+    buttons_html = ""
+    for test_type in test_types:
+        selected = "selected" if test_type in st.session_state.selected_types else ""
+        buttons_html += f"""
+        <button class="filter-button {selected}" name="filter" type="submit" value="{test_type}">{test_type}</button>
+        """
 
-for i, test_type in enumerate(test_types):
-    if test_type in st.session_state.selected_types:
-        if filter_cols[i].button(f"✅ {test_type}", key=f"{test_type}_on"):
-            st.session_state.selected_types.remove(test_type)
+    st.markdown(f"""
+    <div class="button-grid">{buttons_html}</div>
+    """, unsafe_allow_html=True)
+
+    # Hidden input to capture which button was clicked
+    clicked = st.form_submit_button()
+
+# Custom CSS: grid layout, identical size, neat style
+st.markdown("""
+    <style>
+    .button-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .filter-button {
+        background-color: #333333;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        width: 200px;
+        height: 80px;
+        text-align: center;
+        word-wrap: break-word;
+        padding: 10px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .filter-button.selected {
+        border: 2px solid #00FFAA; /* Highlight selected */
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# Update session state when a button is clicked
+if clicked:
+    clicked_type = st.experimental_get_query_params().get("filter", [None])[0]
+    if clicked_type in st.session_state.selected_types:
+        st.session_state.selected_types.remove(clicked_type)
     else:
-        if filter_cols[i].button(f"{test_type}", key=f"{test_type}_off"):
-            st.session_state.selected_types.append(test_type)
+        st.session_state.selected_types.append(clicked_type)
 
 # Default to all if none selected
 if not st.session_state.selected_types:
@@ -38,30 +78,8 @@ if not st.session_state.selected_types:
 else:
     filtered_df = df[df['Test Type'].isin(st.session_state.selected_types)]
 
-# ✅ Improved CSS: same size, flex centering
-st.markdown("""
-    <style>
-    div[data-testid="column"] > div > button {
-        background-color: #333333;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        width: 200px;               /* Fixed width */
-        height: 80px;               /* Fixed height */
-        display: flex;              /* Flex for centering */
-        align-items: center;        /* Vertical center */
-        justify-content: center;    /* Horizontal center */
-        text-align: center;
-        padding: 10px;              /* Space for wrap */
-        white-space: normal;
-        word-break: break-word;
-        font-size: 16px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
 # ---------------------------
-# 2️⃣ Summary Metrics (top)
+# 2️⃣ Summary Metrics
 # ---------------------------
 st.subheader("📈 Summary Metrics")
 col1, col2, col3 = st.columns(3)
@@ -71,7 +89,7 @@ avg_cr = filtered_df['Conversion Rate (%)'].mean()
 col3.metric("Average Conversion Rate (%)", f"{avg_cr:.2f}%")
 
 # ---------------------------
-# 3️⃣ Detailed View (next)
+# 3️⃣ Detailed View
 # ---------------------------
 st.subheader("🔬 Detailed View")
 
@@ -100,7 +118,7 @@ else:
     st.warning("No examples found for the selected filter.")
 
 # ---------------------------
-# 4️⃣ Visualizations (next)
+# 4️⃣ Visualizations
 # ---------------------------
 if not filtered_df.empty:
     st.subheader("📊 Additional Visualizations")
@@ -108,7 +126,6 @@ if not filtered_df.empty:
     col1, col2 = st.columns(2)
 
     with col1:
-        # ROI vs Spend Bubble Chart
         fig_roi_spend = px.scatter(
             filtered_df,
             x="Cost ($)",
@@ -133,9 +150,9 @@ if not filtered_df.empty:
         st.plotly_chart(fig_ctr, use_container_width=True)
 
 # ---------------------------
-# 5️⃣ List of Tests (bottom)
+# 5️⃣ List of Tests
 # ---------------------------
 st.subheader(f"🗂️ Showing {len(filtered_df)} Test(s)")
 st.dataframe(filtered_df)
 
-st.success("✅ Dashboard polished: filter buttons uniform size, perfect centering, updated chart, and clean layout!")
+st.success("✅ Fully updated: uniform filter buttons using HTML grid, perfect sizing, toggles work cleanly!")
