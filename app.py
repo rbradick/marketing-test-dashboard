@@ -11,30 +11,27 @@ st.title("📊 Marketing Test Dashboard")
 st.write("Explore and visualize your enriched marketing test examples.")
 
 # ---------------------------
-# Sidebar filters
+# 1️⃣ Filter: multi-select with first option as default
 # ---------------------------
-st.sidebar.header("Filter Options")
+st.subheader("🔎 **Filter by Test Type:**")
+
 test_types = df['Test Type'].unique()
-selected_test_types = st.sidebar.multiselect(
+
+selected_test_types = st.multiselect(
     "Select Test Types:",
-    test_types,
-    default=test_types
+    options=list(test_types),
+    default=[test_types[0]]  # ✅ default to first option only
 )
 
-# ✅ CSS to hide arrow on multiselect
-st.markdown("""
-    <style>
-    div[data-baseweb="select"] svg {
-        display: none;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+# If nothing is selected, show none
+if selected_test_types:
+    filtered_df = df[df['Test Type'].isin(selected_test_types)]
+else:
+    filtered_df = df.iloc[0:0]  # empty dataframe
 
 # ---------------------------
-# Filtered DataFrame
+# Showing Tests
 # ---------------------------
-filtered_df = df[df['Test Type'].isin(selected_test_types)]
-
 st.markdown(f"### Showing {len(filtered_df)} tests")
 st.dataframe(filtered_df)
 
@@ -45,7 +42,7 @@ st.subheader("📈 Summary Metrics")
 col1, col2, col3 = st.columns(3)
 col1.metric("Total Impressions", f"{filtered_df['Impressions'].sum():,}")
 col2.metric("Total Conversions", f"{filtered_df['Conversions'].sum():,}")
-avg_cr = filtered_df['Conversion Rate (%)'].mean()
+avg_cr = filtered_df['Conversion Rate (%)'].mean() if not filtered_df.empty else 0
 col3.metric("Average Conversion Rate (%)", f"{avg_cr:.2f}%")
 
 # ---------------------------
@@ -97,24 +94,27 @@ with tab3:
 # ---------------------------
 st.subheader("🔬 Detailed View")
 
-selected_example = st.selectbox(
-    "Select an example to view details:",
-    filtered_df['Example']
-)
-example_row = filtered_df[filtered_df['Example'] == selected_example].iloc[0]
+if not filtered_df.empty:
+    selected_example = st.selectbox(
+        "Select an example to view details:",
+        filtered_df['Example']
+    )
+    example_row = filtered_df[filtered_df['Example'] == selected_example].iloc[0]
 
-st.write(f"**Test Type:** {example_row['Test Type']}")
-st.write(f"**Explanation:** {example_row['Explanation']}")
-st.write(f"**Recommendation:** {example_row['Recommendation']}")
-st.write(f"**Test Method:** {example_row['Test Method']}")
-st.write(f"**Reason for Method:** {example_row['Reason for Method']}")
+    st.write(f"**Test Type:** {example_row['Test Type']}")
+    st.write(f"**Explanation:** {example_row['Explanation']}")
+    st.write(f"**Recommendation:** {example_row['Recommendation']}")
+    st.write(f"**Test Method:** {example_row['Test Method']}")
+    st.write(f"**Reason for Method:** {example_row['Reason for Method']}")
 
-st.write("**Performance Metrics:**")
-metrics = example_row[[
-    "Impressions", "Clicks", "Conversions", "Conversion Rate (%)",
-    "Lift (%)", "Cost ($)", "ROI (%)", "CTR (%)",
-    "CPA ($)", "Revenue ($)", "Profit ($)", "Engagement Score"
-]]
-st.json(metrics.to_dict())
+    st.write("**Performance Metrics:**")
+    metrics = example_row[[
+        "Impressions", "Clicks", "Conversions", "Conversion Rate (%)",
+        "Lift (%)", "Cost ($)", "ROI (%)", "CTR (%)",
+        "CPA ($)", "Revenue ($)", "Profit ($)", "Engagement Score"
+    ]]
+    st.json(metrics.to_dict())
+else:
+    st.info("No examples available. Please select at least one Test Type.")
 
-st.success("✅ Dashboard ready — multiselect arrow hidden!")
+st.success("✅ Dashboard updated: filter uses a multi-select with first option defaulted!")
