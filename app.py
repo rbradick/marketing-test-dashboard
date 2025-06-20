@@ -11,59 +11,19 @@ st.title("📊 Marketing Test Dashboard")
 st.write("Explore and visualize your enriched marketing test examples.")
 
 # ---------------------------
-# 1️⃣ Filter (classic buttons, red)
+# 1️⃣ Filter (prominent multi-select)
 # ---------------------------
-st.subheader("🔎 **Filter by Test Type:**")
-
 test_types = df['Test Type'].unique()
+selected_test_types = st.multiselect(
+    "🔎 **Filter by Test Type:**",
+    options=test_types,
+    default=list(test_types)
+)
 
-# Initialize session state
-if 'selected_types' not in st.session_state:
-    st.session_state.selected_types = list(test_types)
-
-# Create columns for buttons
-filter_cols = st.columns(len(test_types))
-
-for i, test_type in enumerate(test_types):
-    if test_type in st.session_state.selected_types:
-        if filter_cols[i].button(f"✅ {test_type}", key=f"{test_type}_on"):
-            st.session_state.selected_types.remove(test_type)
-    else:
-        if filter_cols[i].button(f"{test_type}", key=f"{test_type}_off"):
-            st.session_state.selected_types.append(test_type)
-
-# ✅ Custom CSS for red buttons + same size
-st.markdown("""
-    <style>
-    div[data-testid="column"] > div > button {
-        background-color: #d32f2f; /* red */
-        color: white;
-        border: none;
-        border-radius: 4px;
-        width: 200px;       /* Fixed width */
-        height: 80px;       /* Fixed height */
-        display: flex;      /* Flex to center text */
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 10px;
-        white-space: normal;
-        word-break: break-word;
-        font-size: 16px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+filtered_df = df[df['Test Type'].isin(selected_test_types)]
 
 # ---------------------------
-# 2️⃣ Filtered DataFrame
-# ---------------------------
-if not st.session_state.selected_types:
-    filtered_df = df.copy()
-else:
-    filtered_df = df[df['Test Type'].isin(st.session_state.selected_types)]
-
-# ---------------------------
-# 3️⃣ Summary Metrics
+# 2️⃣ Summary Metrics (top)
 # ---------------------------
 st.subheader("📈 Summary Metrics")
 col1, col2, col3 = st.columns(3)
@@ -73,7 +33,7 @@ avg_cr = filtered_df['Conversion Rate (%)'].mean()
 col3.metric("Average Conversion Rate (%)", f"{avg_cr:.2f}%")
 
 # ---------------------------
-# 4️⃣ Detailed View
+# 3️⃣ Detailed View (next)
 # ---------------------------
 st.subheader("🔬 Detailed View")
 
@@ -102,7 +62,13 @@ else:
     st.warning("No examples found for the selected filter.")
 
 # ---------------------------
-# 5️⃣ Visualizations
+# 4️⃣ List of Tests (after Detailed View)
+# ---------------------------
+st.subheader(f"🗂️ Showing {len(filtered_df)} Test(s)")
+st.dataframe(filtered_df)
+
+# ---------------------------
+# 5️⃣ Re-add Visualizations (below table)
 # ---------------------------
 if not filtered_df.empty:
     st.subheader("📊 Additional Visualizations")
@@ -110,6 +76,25 @@ if not filtered_df.empty:
     col1, col2 = st.columns(2)
 
     with col1:
-        fig_roi_spend = px.scatter(
+        fig_roi = px.histogram(
             filtered_df,
-            x="Cost ($)",
+            x="ROI (%)",
+            color="Test Type",
+            nbins=20,
+            title="ROI (%) Distribution"
+        )
+        st.plotly_chart(fig_roi, use_container_width=True)
+
+    with col2:
+        fig_ctr = px.scatter(
+            filtered_df,
+            x="Impressions",
+            y="CTR (%)",
+            color="Test Type",
+            size="Clicks",
+            hover_data=["Example"],
+            title="CTR (%) vs Impressions"
+        )
+        st.plotly_chart(fig_ctr, use_container_width=True)
+
+st.success("✅ Dashboard fully updated with multi-select filter and charts!")
