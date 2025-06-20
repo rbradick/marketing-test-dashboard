@@ -38,7 +38,7 @@ if not st.session_state.selected_types:
 else:
     filtered_df = df[df['Test Type'].isin(st.session_state.selected_types)]
 
-# ✅ Custom CSS: same size buttons + style
+# ✅ Improved CSS: same size, flex centering
 st.markdown("""
     <style>
     div[data-testid="column"] > div > button {
@@ -46,12 +46,15 @@ st.markdown("""
         color: white;
         border: none;
         border-radius: 4px;
-        padding: 0.8em 1em;
         width: 200px;               /* Fixed width */
-        height: 60px;               /* Fixed height */
-        white-space: normal;        /* Allow wrap */
-        word-break: break-word;     /* Wrap long words */
-        text-align: center;         /* Center text */
+        height: 80px;               /* Fixed height */
+        display: flex;              /* Flex for centering */
+        align-items: center;        /* Vertical center */
+        justify-content: center;    /* Horizontal center */
+        text-align: center;
+        padding: 10px;              /* Space for wrap */
+        white-space: normal;
+        word-break: break-word;
         font-size: 16px;
     }
     </style>
@@ -135,4 +138,4 @@ if not filtered_df.empty:
 st.subheader(f"🗂️ Showing {len(filtered_df)} Test(s)")
 st.dataframe(filtered_df)
 
-st.success("✅ Dashboard fully updated: filter buttons same size, charts reordered, and new bubble chart in place!")
+st.success("✅ Dashboard polished: filter buttons uniform size, perfect centering, updated chart, and clean layout!")
