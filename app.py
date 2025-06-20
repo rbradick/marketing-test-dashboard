@@ -11,16 +11,44 @@ st.title("📊 Marketing Test Dashboard")
 st.write("Explore and visualize your enriched marketing test examples.")
 
 # ---------------------------
-# 1️⃣ Filter (prominent multi-select)
+# 1️⃣ Filter (buttons with styling)
 # ---------------------------
-test_types = df['Test Type'].unique()
-selected_test_types = st.multiselect(
-    "🔎 **Filter by Test Type:**",
-    options=test_types,
-    default=list(test_types)
-)
+st.subheader("🔎 **Filter by Test Type:**")
 
-filtered_df = df[df['Test Type'].isin(selected_test_types)]
+test_types = df['Test Type'].unique()
+# Initialize session state to keep selected test types
+if 'selected_types' not in st.session_state:
+    st.session_state.selected_types = list(test_types)
+
+# Button container
+filter_cols = st.columns(len(test_types))
+
+for i, test_type in enumerate(test_types):
+    if test_type in st.session_state.selected_types:
+        if filter_cols[i].button(f"✅ {test_type}", key=f"{test_type}_on"):
+            st.session_state.selected_types.remove(test_type)
+    else:
+        if filter_cols[i].button(f"{test_type}", key=f"{test_type}_off"):
+            st.session_state.selected_types.append(test_type)
+
+# If nothing is selected, default back to all
+if not st.session_state.selected_types:
+    filtered_df = df.copy()
+else:
+    filtered_df = df[df['Test Type'].isin(st.session_state.selected_types)]
+
+# Custom CSS for button styling
+st.markdown("""
+    <style>
+    div[data-testid="column"] > div > button {
+        background-color: #333333;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 0.5em 1em;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # ---------------------------
 # 2️⃣ Summary Metrics (top)
@@ -62,13 +90,7 @@ else:
     st.warning("No examples found for the selected filter.")
 
 # ---------------------------
-# 4️⃣ List of Tests (after Detailed View)
-# ---------------------------
-st.subheader(f"🗂️ Showing {len(filtered_df)} Test(s)")
-st.dataframe(filtered_df)
-
-# ---------------------------
-# 5️⃣ Re-add Visualizations (below table)
+# 4️⃣ Visualizations (next)
 # ---------------------------
 if not filtered_df.empty:
     st.subheader("📊 Additional Visualizations")
@@ -76,14 +98,17 @@ if not filtered_df.empty:
     col1, col2 = st.columns(2)
 
     with col1:
-        fig_roi = px.histogram(
+        # New ROI vs Spend Bubble chart
+        fig_roi_spend = px.scatter(
             filtered_df,
-            x="ROI (%)",
+            x="Cost ($)",
+            y="ROI (%)",
+            size="Impressions",
             color="Test Type",
-            nbins=20,
-            title="ROI (%) Distribution"
+            hover_data=["Example"],
+            title="ROI (%) vs Cost ($) Bubble Chart"
         )
-        st.plotly_chart(fig_roi, use_container_width=True)
+        st.plotly_chart(fig_roi_spend, use_container_width=True)
 
     with col2:
         fig_ctr = px.scatter(
@@ -97,4 +122,10 @@ if not filtered_df.empty:
         )
         st.plotly_chart(fig_ctr, use_container_width=True)
 
-st.success("✅ Dashboard fully updated with multi-select filter and charts!")
+# ---------------------------
+# 5️⃣ List of Tests (moved to bottom)
+# ---------------------------
+st.subheader(f"🗂️ Showing {len(filtered_df)} Test(s)")
+st.dataframe(filtered_df)
+
+st.success("✅ Dashboard updated with new filter style, chart, and layout!")
