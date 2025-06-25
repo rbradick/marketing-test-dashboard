@@ -13,10 +13,14 @@ st.title("📊 Marketing Test Dashboard")
 def load_data():
     try:
         df = pd.read_csv("Enriched_Marketing_Test_Examples.csv")
+        
+        # Rename 'Example' column to 'Test'
+        df.rename(columns={'Example': 'Test'}, inplace=True)
+        
         # Ensure numeric columns are properly formatted
         numeric_cols = ['Impressions', 'Clicks', 'Conversions', 'Conversion Rate (%)',
-                       'Lift (%)', 'Cost ($)', 'ROI (%)', 'CTR (%)', 'CPA ($)',
-                       'Revenue ($)', 'Profit ($)', 'Engagement Score']
+                        'Lift (%)', 'Cost ($)', 'ROI (%)', 'CTR (%)', 'CPA ($)',
+                        'Revenue ($)', 'Profit ($)', 'Engagement Score']
         for col in numeric_cols:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -99,7 +103,7 @@ if not filtered_df.empty:
                 x="Cost ($)", 
                 y="Conversion Rate (%)",
                 color="Test Type",
-                hover_data=["Example", "Recommendation"],
+                hover_data=["Test", "Recommendation"],
                 title="Conversion Rate vs Cost"
             )
             st.plotly_chart(fig1a, use_container_width=True)
@@ -143,7 +147,7 @@ if not filtered_df.empty:
                 y="CTR (%)",
                 color="Test Type",
                 size="Clicks",
-                hover_data=["Example"],
+                hover_data=["Test"],
                 title="CTR (%) vs Impressions"
             )
             st.plotly_chart(fig3a, use_container_width=True)
@@ -177,25 +181,25 @@ if not filtered_df.empty:
     
     # Detailed View
     st.subheader("🔬 Test Details")
-    selected_example = st.selectbox(
-        "Select an example to view details:",
-        filtered_df['Example'].unique()
+    selected_test = st.selectbox(
+        "Select a test to view details:",
+        filtered_df['Test'].unique()
     )
     
-    example_row = filtered_df[filtered_df['Example'] == selected_example].iloc[0]
+    test_row = filtered_df[filtered_df['Test'] == selected_test].iloc[0]
     
     col1, col2 = st.columns(2)
     with col1:
         st.write("**Test Information**")
-        st.write(f"- **Test Type:** {example_row['Test Type']}")
-        st.write(f"- **Test Method:** {example_row['Test Method']}")
-        st.write(f"- **Reason for Method:** {example_row['Reason for Method']}")
-        st.write(f"- **Explanation:** {example_row['Explanation']}")
-        st.write(f"- **Recommendation:** {example_row['Recommendation']}")
+        st.write(f"- **Test Type:** {test_row['Test Type']}")
+        st.write(f"- **Test Method:** {test_row['Test Method']}")
+        st.write(f"- **Reason for Method:** {test_row['Reason for Method']}")
+        st.write(f"- **Explanation:** {test_row['Explanation']}")
+        st.write(f"- **Recommendation:** {test_row['Recommendation']}")
     
     with col2:
         st.write("**Performance Metrics**")
-        metrics = example_row[[
+        metrics = test_row[[
             "Impressions", "Clicks", "Conversions", "Conversion Rate (%)",
             "Lift (%)", "Cost ($)", "ROI (%)", "CTR (%)",
             "CPA ($)", "Revenue ($)", "Profit ($)", "Engagement Score"
